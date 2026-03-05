@@ -1,0 +1,31 @@
+{
+  "name": "Мой умный дом",
+  "rooms": {
+    "43ca3e56-4e11-42e7-9eea-f0cf1bfaa7dd": {
+      "id": "43ca3e56-4e11-42e7-9eea-f0cf1bfaa7dd",
+      "name": "спальня",
+      "devices": {
+        "8c093baf-cc86-42f2-aa60-2d9c68138b6a": {
+          "id": "8c093baf-cc86-42f2-aa60-2d9c68138b6a",
+          "name": "лампочка",
+          "room_id": "43ca3e56-4e11-42e7-9eea-f0cf1bfaa7dd",
+          "status": true,
+          "device_type": "освещение",
+          "brightness": 100,
+          "color": "белый"
+        },
+        "92aa8670-95f1-446c-94aa-2c32927a104a": {
+          "id": "92aa8670-95f1-446c-94aa-2c32927a104a",
+          "name": "семен",
+          "room_id": "43ca3e56-4e11-42e7-9eea-f0cf1bfaa7dd",
+          "status": false,
+          "device_type": "пылесос",
+          "battery": 100,
+          "cleaning": false,
+          "current_room": "43ca3e56-4e11-42e7-9eea-f0cf1bfaa7dd"
+        }
+      }
+    }
+  },
+  "automation_rules": {}
+}

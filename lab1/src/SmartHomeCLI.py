@@ -1,8 +1,13 @@
-"""Интерфейс командной строки"""
+"""Интерфейс командной строки с поддержкой сохранения состояния"""
 
 from SmartHome import SmartHome
 from Room import Room
-from Devices import *
+from SmartDevice import SmartDevice
+from LightDevice import LightDevice
+from ClimateDevice import ClimateDevice
+from SecuritySystem import SecuritySystem
+from SmartCleaner import SmartCleaner
+from SmartKettle import SmartKettle
 from OwnerDevice import OwnerDevice
 from Automation import AutomationRule
 from exceptions import SmartHomeError, InvalidValueError, DeviceNotFoundError
@@ -13,13 +18,24 @@ class SmartHomeCLI:
 
     def __init__(self):
         self.home = SmartHome("Мой умный дом")
-        self._setup_default_owner()  # ← РАСКОММЕНТИРОВАНО! Устройство создается сразу
+        self.state_file = "smarthome_state.json"
+
+        # Пытаемся загрузить сохраненное состояние
+        try:
+            self.home.load_state(self.state_file)
+        except Exception as e:
+            print(f"Предупреждение: {e}")
+
+        # Если устройство хозяина не загрузилось, создаем по умолчанию
+        if not self.home.owner_device:
+            self._setup_default_owner()
+
         print("SmartHomeCLI инициализирован")
 
-    def _setup_default_owner(self):
+    def _setup_default_owner(self) -> None:
         """Установка устройства хозяина по умолчанию"""
         try:
-            owner = OwnerDevice("iPhone хозяина")
+            owner = OwnerDevice("Мобильный телефон хозяина")
             self.home.add_owner_device(owner)
             print("Устройство хозяина настроено")
         except Exception as e:
@@ -30,10 +46,10 @@ class SmartHomeCLI:
         while True:
             try:
                 self.show_menu()
-                choice = input("\nВыберите действие: ").strip()
+                choice = input("\nВыберите действие: ").strip().lower()
 
                 if choice == '0':
-                    print("До свидания!")
+                    self._exit_program()
                     break
                 elif choice == '1':
                     self.list_rooms()
@@ -53,18 +69,33 @@ class SmartHomeCLI:
                     self.monitor_security()
                 elif choice == '9':
                     self.owner_device_menu()
+                elif choice == 's':
+                    self.home.save_state(self.state_file)
                 else:
                     print("Неверный выбор")
 
             except KeyboardInterrupt:
                 print("\nПрограмма прервана пользователем")
+                self._exit_program()
                 break
             except Exception as e:
                 print(f"Ошибка: {e}")
 
+    def _exit_program(self) -> None:
+        """Действия при выходе из программы"""
+        print("\nСохраняем состояние перед выходом...")
+        try:
+            self.home.save_state(self.state_file)
+            print("До свидания!")
+        except Exception as e:
+            print(f"Ошибка при сохранении: {e}")
+            print("До свидания!")
+
     def show_menu(self) -> None:
         """Показать главное меню"""
-        print(f"\n=== Умный дом: {self.home.name} ===")
+        print(f"\n{'='*40}")
+        print(f"   Умный дом: {self.home.name}")
+        print(f"{'='*40}")
         print("1. Список комнат")
         print("2. Добавить устройство")
         print("3. Список устройств")
@@ -74,11 +105,12 @@ class SmartHomeCLI:
         print("7. Проверить автоматизацию")
         print("8. Мониторинг безопасности")
         print("9. Мобильное устройство хозяина")
-        print("0. Выход")
+        print("s. Сохранить состояние")
+        print("0. Выход (с сохранением)")
 
     # ==================== МЕТОДЫ УПРАВЛЕНИЯ ====================
 
-    def control_menu(self):
+    def control_menu(self) -> None:
         """Главное меню управления устройствами"""
         while True:
             print("\n=== УПРАВЛЕНИЕ УСТРОЙСТВАМИ ===")
@@ -109,7 +141,7 @@ class SmartHomeCLI:
             else:
                 print("Неверный выбор")
 
-    def control_lights(self):
+    def control_lights(self) -> None:
         """Управление освещением"""
         print("\n=== УПРАВЛЕНИЕ СВЕТОМ ===")
 
@@ -179,7 +211,7 @@ class SmartHomeCLI:
                     count += 1
             print(f"Выключено {count} лампочек")
 
-    def control_climate(self):
+    def control_climate(self) -> None:
         """Управление климатом (температура и влажность)"""
         print("\n=== УПРАВЛЕНИЕ КЛИМАТОМ ===")
 
@@ -228,7 +260,7 @@ class SmartHomeCLI:
                 clim.set_humidity(50)
             print("Всем установлена влажность 50%")
 
-    def _climate_device_menu(self, device):
+    def _climate_device_menu(self, device: ClimateDevice) -> None:
         """Меню управления конкретным климат-устройством"""
         while True:
             print(f"\n--- {device.name} ---")
@@ -294,7 +326,7 @@ class SmartHomeCLI:
                 except InvalidValueError as e:
                     print(f"Ошибка: {e}")
 
-    def control_cleaner(self):
+    def control_cleaner(self) -> None:
         """Управление пылесосом"""
         print("\n=== УПРАВЛЕНИЕ ПЫЛЕСОСОМ ===")
 
@@ -333,7 +365,7 @@ class SmartHomeCLI:
         elif action == '3':
             cleaner.stop()
 
-    def control_kettle(self):
+    def control_kettle(self) -> None:
         """Управление чайником"""
         print("\n=== УПРАВЛЕНИЕ ЧАЙНИКОМ ===")
 
@@ -372,7 +404,7 @@ class SmartHomeCLI:
             except ValueError:
                 print("Ошибка: введите число")
 
-    def control_security(self):
+    def control_security(self) -> None:
         """Управление сигнализацией"""
         print("\n=== УПРАВЛЕНИЕ СИГНАЛИЗАЦИЕЙ ===")
 
@@ -399,7 +431,7 @@ class SmartHomeCLI:
         elif action == '2':
             sec.disarm()
 
-    def quick_commands(self):
+    def quick_commands(self) -> None:
         """Быстрые команды"""
         print("\n=== БЫСТРЫЕ КОМАНДЫ ===")
         print("1. Включить ВЕСЬ свет")
@@ -647,7 +679,7 @@ class SmartHomeCLI:
             print(f"Условие: Время {time_str}")
         elif condition_type == '2':
             # Показываем список устройств для выбора
-            self.list_devices()
+            self.list_devices_short()
             device_id = input("ID устройства: ").strip()
             status = input("Статус (включено/выключено): ").strip()
             condition = {'type': 'device_status', 'device_id': device_id, 'status': status}
@@ -740,7 +772,7 @@ class SmartHomeCLI:
             for desc in rule.get_actions_description(self.home):
                 print(f"  {desc}")
 
-    def list_devices_short(self):
+    def list_devices_short(self) -> None:
         """Краткий список устройств (только ID и название)"""
         print("\n--- Доступные устройства ---")
 
@@ -829,7 +861,8 @@ class SmartHomeCLI:
 
     def monitor_security(self) -> None:
         """Мониторинг безопасности"""
-        print("\n=== МОНИТОРИНГ БЕЗОПАСНОСТИ ===")
+        print("\n=== УПРАВЛЕНИЕ СИГНАЛИЗАЦИЕЙ ===")
+
         if not self.home.security_system:
             print("Сигнализация не установлена")
             return
@@ -842,9 +875,23 @@ class SmartHomeCLI:
         print(f"   Статус: {status}")
         print(f"   Состояние: {alarm}")
 
+        print("\n1. Поставить на охрану")
+        print("2. Снять с охраны")
+        print("3. ИМИТИРОВАТЬ ТРЕВОГУ")  # <<< ДОБАВЬ ЭТО
+        print("0. Назад")
+
+        action = input("Выберите: ").strip()
+
+        if action == '1':
+            sec.arm()
+        elif action == '2':
+            sec.disarm()
+        elif action == '3':  # <<< ДОБАВЬ ЭТО
+            sec.trigger_alarm()  # <<< ВЫЗЫВАЕМ ТРЕВОГУ
+            print(" ТРЕВОГА СРАБОТАЛА!")
     # ==================== МЕТОДЫ ДЛЯ УСТРОЙСТВА ХОЗЯИНА ====================
 
-    def owner_device_menu(self):
+    def owner_device_menu(self) -> None:
         """Меню управления устройством хозяина"""
         while True:
             print("\n=== МОБИЛЬНОЕ УСТРОЙСТВО ХОЗЯИНА ===")
