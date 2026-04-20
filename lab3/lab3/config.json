@@ -1,0 +1,55 @@
+{
+  "window": {
+    "width": 1000,
+    "height": 800
+  },
+  "board": {
+    "size": 8,
+    "square_size": 100,
+    "left_panel": 100,
+    "right_panel": 100
+  },
+  "colors": {
+    "light_brown": [240, 217, 181],
+    "dark_brown": [181, 136, 99],
+    "white": [255, 255, 255],
+    "black": [0, 0, 0],
+    "green": [0, 255, 0],
+    "yellow": [255, 255, 0],
+    "red": [255, 0, 0],
+    "gold": [255, 215, 0],
+    "blue": [0, 100, 255],
+    "orange": [255, 165, 0],
+    "dark_gray": [40, 40, 40],
+    "gray": [100, 100, 100]
+  },
+  "sound": {
+    "music_volume": 0.4,
+    "sfx_volume": 0.7,
+    "menu_music": "assets/sounds/menu_music.ogg",
+    "game_music": "assets/sounds/game_music.ogg",
+    "move_sound": "assets/sounds/move.wav",
+    "win_sound": "assets/sounds/win.wav",
+    "lose_sound": "assets/sounds/lose.wav"
+  },
+  "animation": {
+    "move_duration": 10,
+    "rotate_step": 10,
+    "capture_particles": 15,
+    "check_flash_duration": 10
+  },
+  "ai": {
+    "easy_depth": 1,
+    "medium_depth": 2,
+    "hard_depth": 3,
+    "expert_depth": 4
+  },
+  "piece_values": {
+    "P": 100,
+    "N": 320,
+    "B": 330,
+    "R": 500,
+    "Q": 900,
+    "K": 10000
+  }
+}
