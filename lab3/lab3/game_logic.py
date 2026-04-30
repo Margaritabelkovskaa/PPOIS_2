@@ -118,6 +118,22 @@ class ChessGame:
 
     def make_move(self, from_r, from_c, to_r, to_c):
         """Выполняет ход"""
+        kings = {'white': False, 'black': False}
+        for row in range(8):
+            for col in range(8):
+                piece = self.board[row][col]
+                if piece and piece.type == 'K':
+                    kings[piece.color] = True
+
+        if not kings['white']:
+            self.game_over = True
+            self.winner = 'black'
+            return False, None, None
+
+        if not kings['black']:
+            self.game_over = True
+            self.winner = 'white'
+            return False, None, None
         piece = self.board[from_r][from_c]
         if not piece or piece.color != self.current_turn:
             return False, None, None
