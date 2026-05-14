@@ -1,0 +1,72 @@
+/* Основные стили для умного дома */
+
+.device-card {
+    transition: transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.device-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.navbar-brand i {
+    margin-right: 8px;
+}
+
+.btn-group .btn {
+    border-radius: 5px;
+    margin: 0 2px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #f5f5f5;
+}
+
+main {
+    margin-bottom: 80px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .device-card {
+        margin-bottom: 15px;
+    }
+
+    .btn-group {
+        flex-direction: column;
+    }
+
+    .btn-group .btn {
+        margin: 2px 0;
+        border-radius: 5px !important;
+    }
+}
+
+/* Анимации */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.text-danger i {
+    animation: pulse 1s infinite;
+}
+
+/* Карточки на главной */
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card i {
+    transition: transform 0.3s;
+}
+
+.card:hover i {
+    transform: scale(1.1);
+}

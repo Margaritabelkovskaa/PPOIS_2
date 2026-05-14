@@ -1,0 +1,54 @@
+{% extends 'smart_home/base.html' %}
+
+{% block content %}
+<h1> Система безопасности</h1>
+
+<div class="card" style="text-align: center;">
+    {% if security %}
+    <h2>{{ security.name }}</h2>
+    <div style="font-size: 48px; margin: 20px;">
+        {% if armed %} НА ОХРАНЕ{% else %}🟢 СНЯТО{% endif %}
+    </div>
+    {% if alarm %}
+    <div style="background: #dc3545; color: white; padding: 15px; border-radius: 10px; margin: 10px;">
+         ТРЕВОГА!
+    </div>
+    {% endif %}
+    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+        <button onclick="arm()" class="btn btn-danger" {% if armed %}disabled{% endif %}> Поставить на охрану</button>
+        <button onclick="disarm()" class="btn btn-success" {% if not armed %}disabled{% endif %}> Снять с охраны</button>
+    </div>
+    {% else %}
+    <p>Система безопасности не установлена</p>
+    {% endif %}
+</div>
+
+<script>
+function arm() {
+    fetch('/api/security/arm/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => { if(data.success) location.reload(); });
+}
+
+function disarm() {
+    fetch('/api/security/disarm/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => { if(data.success) location.reload(); });
+}
+
+function trigger() {
+    fetch('/api/security/trigger/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => { if(data.success) location.reload(); });
+}
+</script>
+{% endblock %}

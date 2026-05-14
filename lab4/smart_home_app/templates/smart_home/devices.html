@@ -1,0 +1,55 @@
+{% extends 'smart_home/base.html' %}
+
+{% block content %}
+<h1> Все устройства</h1>
+
+<div class="card">
+    <table style="width:100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Тип</th>
+                <th>Название</th>
+                <th>Комната</th>
+                <th>Статус</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for device in devices %}
+            <tr style="border-bottom: 1px solid #ddd;">
+                <td>
+                    {% if device.type == 'освещение' %}💡
+                    {% elif device.type == 'климат' %}🌡️
+                    {% elif device.type == 'пылесос' %}🤖
+                    {% elif device.type == 'чайник' %}🍵
+                    {% endif %}
+                </td>
+                <td>{{ device.name }}</td>
+                <td>{{ device.room }}</td>
+                <td class="{% if device.status %}status-on{% else %}status-off{% endif %}">
+                    {% if device.status %}Включено{% else %}Выключено{% endif %}
+                </td>
+                <td>
+                    <button onclick="toggleDevice('{{ device.id }}')" class="btn">
+                        {% if device.status %}Выключить{% else %}Включить{% endif %}
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align: center;">Нет устройств</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function toggleDevice(id) {
+    fetch(`/api/device/${id}/toggle/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => { if(data.success) location.reload(); });
+}
+</script>
+{% endblock %}

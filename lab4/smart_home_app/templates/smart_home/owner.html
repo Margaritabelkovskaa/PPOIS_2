@@ -1,0 +1,106 @@
+{% extends 'smart_home/base.html' %}
+
+{% block content %}
+<h1> Мобильное устройство хозяина</h1>
+
+<div class="card" style="text-align: center;">
+    {% if owner %}
+    <h2>{{ owner.name }}</h2>
+    <div style="font-size: 48px; margin: 20px;">
+        {% if owner.connected %} ПОДКЛЮЧЕНО{% else %} ОТКЛЮЧЕНО{% endif %}
+    </div>
+    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+        <button onclick="connect()" class="btn btn-success" {% if owner.connected %}disabled{% endif %}>🔌 Подключить</button>
+        <button onclick="disconnect()" class="btn btn-danger" {% if not owner.connected %}disabled{% endif %}>🔌 Отключить</button>
+    </div>
+    <div style="margin-top: 20px;">
+        <input type="text" id="message" placeholder="Введите сообщение" style="width: 70%;">
+        <button onclick="sendNotification()" class="btn"> Отправить уведомление</button>
+    </div>
+    {% else %}
+    <p>Устройство хозяина не найдено</p>
+    {% endif %}
+</div>
+
+<!-- История сообщений -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="margin: 0;"> История сообщений</h2>
+        <button onclick="clearHistory()" class="btn btn-danger" style="background: #dc3545;">
+            🗑 Очистить историю
+        </button>
+    </div>
+
+    {% if messages %}
+    <div style="max-height: 300px; overflow-y: auto;">
+        {% for msg in messages reversed %}
+        <div style="padding: 10px; border-bottom: 1px solid #ecf0f1;">
+            <small style="color: #7f8c8d;">{{ msg.time }}</small>
+            <p style="margin: 5px 0 0 0;">{{ msg.message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align: center; color: #95a5a6;">Нет сообщений</p>
+    {% endif %}
+</div>
+
+<script>
+function connect() {
+    fetch('/api/owner/connect/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => { if(data.success) location.reload(); });
+}
+
+function disconnect() {
+    fetch('/api/owner/disconnect/', {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => { if(data.success) location.reload(); });
+}
+
+function sendNotification() {
+    let msg = document.getElementById('message').value;
+    if(!msg) {
+        alert('Введите сообщение');
+        return;
+    }
+    fetch('/api/owner/notify/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify({message: msg})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.success) {
+            alert('Уведомление отправлено!');
+            document.getElementById('message').value = '';
+            location.reload();
+        }
+    });
+}
+
+function clearHistory() {
+    if(confirm('Очистить всю историю сообщений?')) {
+        fetch('/api/owner/clear_history/', {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.success) {
+                alert('История очищена!');
+                location.reload();
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

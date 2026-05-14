@@ -1,0 +1,327 @@
+{% extends 'smart_home/base.html' %}
+
+{% block content %}
+<h1> Панель управления</h1>
+
+<button onclick="showForm()" class="btn btn-success" style="margin-bottom: 20px;">
+     Добавить устройство
+</button>
+
+<div id="addForm" style="display:none; background:white; padding:20px; border-radius:10px; margin-bottom:20px;">
+    <h3>Новое устройство</h3>
+    <div style="margin-bottom:10px;">
+        <label>Тип:</label>
+        <select id="deviceType" style="width:100%; padding:8px;">
+            <option value="light">💡 Освещение</option>
+            <option value="climate">🌡️ Климат</option>
+            <option value="cleaner">🤖 Пылесос</option>
+            <option value="kettle">🍵 Чайник</option>
+        </select>
+    </div>
+    <div style="margin-bottom:10px;">
+        <label>Название:</label>
+        <input type="text" id="deviceName" placeholder="Например: Люстра" style="width:100%; padding:8px;">
+    </div>
+    <div style="margin-bottom:10px;">
+        <label>Комната:</label>
+        <select id="roomName" style="width:100%; padding:8px;">
+            {% for room in home.rooms.values %}
+                <option value="{{ room.name }}">{{ room.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button onclick="addDevice()" class="btn btn-success"> Сохранить</button>
+    <button onclick="hideForm()" class="btn btn-danger"> Отмена</button>
+</div>
+
+<div class="device-grid">
+    {% for device in devices %}
+    <div class="device-card">
+        <h3>
+            {% if device.type == 'освещение' %}💡
+            {% elif device.type == 'климат' %}🌡️
+            {% elif device.type == 'пылесос' %}🤖
+            {% elif device.type == 'чайник' %}🍵
+            {% endif %}
+            {{ device.name }}
+        </h3>
+        <p> Комната: {{ device.room }}</p>
+
+        <p class="{% if device.status %}status-on{% else %}status-off{% endif %}" style="font-size: 18px;">
+            {% if device.status %} Включено{% else %} Выключено{% endif %}
+        </p>
+
+        <!-- ========== ОСВЕЩЕНИЕ ========== -->
+        {% if device.type == 'освещение' %}
+        <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <label>💡 ЯРКОСТЬ: <span id="brightness-val-{{ device.id }}" style="font-weight: bold; font-size: 18px;">{{ device.brightness|default:100 }}</span>%</label>
+            <input type="range" id="brightness-{{ device.id }}" min="0" max="100" step="1"
+                   value="{{ device.brightness|default:100 }}"
+                   onchange="setBrightness('{{ device.id }}', this.value)"
+                   style="width: 100%; margin: 10px 0; height: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #7f8c8d;">
+                <span>🌑 0%</span>
+                <span>🌓 50%</span>
+                <span>🌕 100%</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========== КЛИМАТ ========== -->
+        {% if device.type == 'климат' %}
+        <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <label>🌡️ ТЕМПЕРАТУРА: <span id="temp-val-{{ device.id }}" style="font-weight: bold; font-size: 18px;">{{ device.target_temperature|default:22 }}</span>°C</label>
+            <input type="range" id="temperature-{{ device.id }}" min="16" max="30" step="0.5"
+                   value="{{ device.target_temperature|default:22 }}"
+                   onchange="setTemperature('{{ device.id }}', this.value)"
+                   style="width: 100%; margin: 10px 0; height: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #7f8c8d;">
+                <span>❄️ 16°C</span>
+                <span>🌡️ 23°C</span>
+                <span>🔥 30°C</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <label>💧 ВЛАЖНОСТЬ: <span id="humidity-val-{{ device.id }}" style="font-weight: bold; font-size: 18px;">{{ device.target_humidity|default:50 }}</span>%</label>
+            <input type="range" id="humidity-{{ device.id }}" min="30" max="80" step="5"
+                   value="{{ device.target_humidity|default:50 }}"
+                   onchange="setHumidity('{{ device.id }}', this.value)"
+                   style="width: 100%; margin: 10px 0; height: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #7f8c8d;">
+                <span>💨 30%</span>
+                <span>💧 55%</span>
+                <span>💦 80%</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <label>🔄 РЕЖИМ РАБОТЫ:</label>
+            <select id="mode-{{ device.id }}" onchange="setMode('{{ device.id }}', this.value)" style="width: 100%; margin-top: 8px; padding: 8px;">
+                <option value="auto" {% if device.mode == 'auto' %}selected{% endif %}>🤖 Автоматический</option>
+                <option value="cool" {% if device.mode == 'cool' %}selected{% endif %}>❄️ Охлаждение</option>
+                <option value="heat" {% if device.mode == 'heat' %}selected{% endif %}>🔥 Обогрев</option>
+                <option value="dry" {% if device.mode == 'dry' %}selected{% endif %}>💨 Осушение</option>
+                <option value="fan_only" {% if device.mode == 'fan_only' %}selected{% endif %}>🌀 Только вентиляция</option>
+            </select>
+        </div>
+
+        <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <label>🌀 СКОРОСТЬ ВЕНТИЛЯТОРА:</label>
+            <select id="fan_speed-{{ device.id }}" onchange="setFanSpeed('{{ device.id }}', this.value)" style="width: 100%; margin-top: 8px; padding: 8px;">
+                <option value="auto" {% if device.fan_speed == 'auto' %}selected{% endif %}>🤖 Авто</option>
+                <option value="low" {% if device.fan_speed == 'low' %}selected{% endif %}>🐌 Низкая</option>
+                <option value="medium" {% if device.fan_speed == 'medium' %}selected{% endif %}>⚡ Средняя</option>
+                <option value="high" {% if device.fan_speed == 'high' %}selected{% endif %}>💨 Высокая</option>
+            </select>
+        </div>
+        {% endif %}
+
+        <!-- ========== ЧАЙНИК ========== -->
+        {% if device.type == 'чайник' %}
+        <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <div style="margin-bottom: 10px;">
+                📊 Вода: <strong>{{ device.water_level|default:100 }}%</strong>
+                <progress value="{{ device.water_level|default:100 }}" max="100" style="width: 100%; height: 10px;"></progress>
+            </div>
+            <div style="margin-bottom: 10px;">
+                🌡️ Температура: <strong>{{ device.temperature|default:20 }}°C</strong>
+            </div>
+            <button onclick="boilKettle('{{ device.id }}')" class="btn btn-warning" style="width: 100%; margin-top: 10px;">
+                🍵 ВСКИПЯТИТЬ ЧАЙНИК
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- ========== ПЫЛЕСОС ========== -->
+        {% if device.type == 'пылесос' %}
+        <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <label>🔄 РЕЖИМ УБОРКИ:</label>
+            <select id="mode-{{ device.id }}" onchange="setCleanerMode('{{ device.id }}', this.value)" style="width: 100%; margin-top: 8px; padding: 8px;">
+                <option value="обычный" {% if device.mode == 'обычный' %}selected{% endif %}>🧹 Обычная уборка</option>
+                <option value="влажная" {% if device.mode == 'влажная' %}selected{% endif %}>💧 Влажная уборка</option>
+            </select>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="startCleaning('{{ device.id }}')" class="btn btn-success" style="flex: 1;">▶️ ЗАПУСТИТЬ</button>
+                <button onclick="stopCleaning('{{ device.id }}')" class="btn btn-danger" style="flex: 1;">⏹️ ОСТАНОВИТЬ</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- КНОПКИ ВКЛ/ВЫКЛ И УДАЛЕНИЯ -->
+        <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <button onclick="toggleDevice('{{ device.id }}')" class="btn" style="flex: 1; background: {% if device.status %}#e74c3c{% else %}#27ae60{% endif %};">
+                {% if device.status %} ВЫКЛЮЧИТЬ{% else %}🟢 ВКЛЮЧИТЬ{% endif %}
+            </button>
+            <button onclick="deleteDevice('{{ device.id }}')" class="btn btn-danger" style="flex: 1;">
+                🗑️ УДАЛИТЬ
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card" style="text-align: center;">
+        <p> Нет устройств. Нажмите "Добавить устройство"</p>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+function showForm() {
+    document.getElementById('addForm').style.display = 'block';
+}
+function hideForm() {
+    document.getElementById('addForm').style.display = 'none';
+}
+
+function addDevice() {
+    const data = {
+        device_type: document.getElementById('deviceType').value,
+        name: document.getElementById('deviceName').value,
+        room_name: document.getElementById('roomName').value
+    };
+    if (!data.name) {
+        alert('Введите название');
+        return;
+    }
+    fetch('/api/device/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    });
+}
+
+function toggleDevice(deviceId) {
+    fetch(`/api/device/${deviceId}/toggle/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) location.reload();
+        else alert('Ошибка: ' + data.error);
+    });
+}
+
+function deleteDevice(deviceId) {
+    if (confirm('Удалить устройство?')) {
+        fetch(`/api/device/${deviceId}/`, {
+            method: 'DELETE',
+            headers: {'X-CSRFToken': getCookie('csrftoken')}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert('Ошибка: ' + data.error);
+        });
+    }
+}
+
+// ОСВЕЩЕНИЕ
+function setBrightness(deviceId, value) {
+    document.getElementById(`brightness-val-${deviceId}`).innerHTML = value;
+    fetch(`/api/device/${deviceId}/brightness/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify({brightness: parseInt(value)})
+    });
+}
+
+// КЛИМАТ
+function setTemperature(deviceId, value) {
+    document.getElementById(`temp-val-${deviceId}`).innerHTML = value;
+    fetch(`/api/device/${deviceId}/temperature/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify({temperature: parseFloat(value)})
+    });
+}
+
+function setHumidity(deviceId, value) {
+    document.getElementById(`humidity-val-${deviceId}`).innerHTML = value;
+    fetch(`/api/device/${deviceId}/humidity/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify({humidity: parseFloat(value)})
+    });
+}
+
+function setMode(deviceId, mode) {
+    fetch(`/api/device/${deviceId}/mode/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify({mode: mode})
+    });
+}
+
+function setFanSpeed(deviceId, speed) {
+    fetch(`/api/device/${deviceId}/fan_speed/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify({fan_speed: speed})
+    });
+}
+
+// ЧАЙНИК
+function boilKettle(deviceId) {
+    fetch(`/api/device/${deviceId}/boil/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Чайник начал кипятить воду! 🌊');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    });
+}
+
+// ПЫЛЕСОС
+function setCleanerMode(deviceId, mode) {
+    fetch(`/api/device/${deviceId}/cleaner_mode/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+        body: JSON.stringify({mode: mode})
+    });
+}
+
+function startCleaning(deviceId) {
+    fetch(`/api/device/${deviceId}/start_cleaning/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Пылесос начал уборку! 🧹');
+            location.reload();
+        }
+    });
+}
+
+function stopCleaning(deviceId) {
+    fetch(`/api/device/${deviceId}/stop_cleaning/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Пылесос остановлен ⏹️');
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}
