@@ -17,7 +17,7 @@ from core.OwnerDevice import OwnerDevice
 from core.Automation import AutomationRule
 
 # ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
-home = SmartHome("Мой умный дом")
+home = SmartHome("Умный дом")
 
 # Путь к файлу сохранения
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -95,7 +95,7 @@ def _create_demo_data():
         print(f"  + Сигнализация")
 
     if not home.owner_device:
-        owner = OwnerDevice("iPhone Хозяина")
+        owner = OwnerDevice("Мобильный телефон хозяина")
         home.add_owner_device(owner)
         owner.connect()
         print(f"  + Устройство хозяина")
@@ -125,7 +125,7 @@ else:
 
 print(f"\nКОМНАТ: {len(home.rooms)}")
 for room in home.rooms.values():
-    print(f"  📍 {room.name}: {len(room.devices)} устройств")
+    print(f"{room.name}: {len(room.devices)} устройств")
     for device in room.devices.values():
         if isinstance(device, LightDevice):
             print(f"      💡 {device.name}: яркость {device.brightness}%, {'вкл' if device.status else 'выкл'}")
@@ -510,7 +510,7 @@ def api_arm_security(request):
             home.security_system.arm()
             home.save_state(STATE_FILE)
             if home.owner_device and home.owner_device.connected:
-                home.owner_device.send_notification("🔒 Сигнализация поставлена на охрану")
+                home.owner_device.send_notification(" Сигнализация поставлена на охрану")
             return JsonResponse({'success': True})
         return JsonResponse({'success': False, 'error': 'Нет сигнализации'})
     except Exception as e:
@@ -525,7 +525,7 @@ def api_disarm_security(request):
             home.security_system.disarm()
             home.save_state(STATE_FILE)
             if home.owner_device and home.owner_device.connected:
-                home.owner_device.send_notification("🔓 Сигнализация снята с охраны")
+                home.owner_device.send_notification(" Сигнализация снята с охраны")
             return JsonResponse({'success': True})
         return JsonResponse({'success': False, 'error': 'Нет сигнализации'})
     except Exception as e:
@@ -544,7 +544,7 @@ def api_trigger_alarm(request):
                 global owner_messages
                 owner_messages.append({
                     'time': datetime.now().strftime('%H:%M:%S'),
-                    'message': "🚨 ТРЕВОГА! Сработала сигнализация!"
+                    'message': " ТРЕВОГА! Сработала сигнализация!"
                 })
             return JsonResponse({'success': True})
         return JsonResponse({'success': False, 'error': 'Нет сигнализации'})

@@ -1,9 +1,9 @@
 {% extends 'smart_home/base.html' %}
 
 {% block content %}
-<h1>🤖 Правила автоматизации</h1>
+<h1> Правила автоматизации</h1>
 
-<button onclick="showAddRule()" class="btn btn-success" style="margin-bottom: 20px;">➕ Добавить правило</button>
+<button onclick="showAddRule()" class="btn btn-success" style="margin-bottom: 20px;"> Добавить правило</button>
 
 <div id="addRuleForm" style="display:none; background:white; border-radius:15px; padding:20px; margin-bottom:20px;">
     <h3>Новое правило</h3>
@@ -37,7 +37,7 @@
             <option value="turn_on">Включить</option>
             <option value="turn_off">Выключить</option>
         </select>
-        <button onclick="addAction()" class="btn btn-info" style="margin-top:10px;">➕ Добавить действие</button>
+        <button onclick="addAction()" class="btn btn-info" style="margin-top:10px;"> Добавить действие</button>
     </div>
 
     <div id="actionsList" style="margin:10px 0; padding:10px; background:#f8f9fa; border-radius:5px;">
@@ -45,15 +45,15 @@
         <ul id="actionsUl"></ul>
     </div>
 
-    <button onclick="addRule()" class="btn btn-success">✅ Сохранить правило</button>
-    <button onclick="hideAddRule()" class="btn btn-danger">❌ Отмена</button>
+    <button onclick="addRule()" class="btn btn-success"> Сохранить правило</button>
+    <button onclick="hideAddRule()" class="btn btn-danger"> Отмена</button>
 </div>
 
 <div class="device-grid">
     {% for rule in rules %}
     <div class="device-card">
         <h3>{{ rule.name }}</h3>
-        <p>📋 {{ rule.condition_desc }}</p>
+        <p> {{ rule.condition_desc }}</p>
         <ul>
             {% for action in rule.actions_desc %}
             <li>{{ action }}</li>
@@ -63,7 +63,7 @@
             <input type="checkbox" {% if rule.enabled %}checked{% endif %} onchange="toggleRule('{{ rule.id }}', this.checked)">
             Активно
         </label>
-        <button onclick="deleteRule('{{ rule.id }}')" class="btn btn-danger" style="margin-left: 10px;">🗑️</button>
+<button onclick="deleteRule('{{ rule.id }}')" class="btn btn-danger" style="margin-left: 10px;"> Удалить правило</button>
     </div>
     {% empty %}
     <div class="card" style="text-align: center;">
@@ -146,7 +146,7 @@ function updateActionsList() {
     ul.innerHTML = '';
     actions.forEach((item, index) => {
         const li = document.createElement('li');
-        li.innerHTML = `${item.text} <button onclick="removeAction(${index})" style="margin-left:10px;">❌</button>`;
+        li.innerHTML = `${item.text} <button onclick="removeAction(${index})" style="margin-left:10px;"></button>`;
         ul.appendChild(li);
     });
 }

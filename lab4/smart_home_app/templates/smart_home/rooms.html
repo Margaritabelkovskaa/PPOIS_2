@@ -1,13 +1,13 @@
 {% extends 'smart_home/base.html' %}
 
 {% block content %}
-<h1>🚪 Комнаты умного дома</h1>
+<h1> Комнаты умного дома</h1>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
     {% for room in rooms %}
     <div class="room-card" onclick="toggleRoomDevices('{{ room.id }}')" style="cursor: pointer;">
         <h2 style="color: #2c3e50; margin: 0 0 15px 0; border-left: 4px solid #3498db; padding-left: 15px;">
-            🏠 {{ room.name }}
+             {{ room.name }}
         </h2>
         <p style="color: #7f8c8d; margin-bottom: 15px;">📱 Устройств: {{ room.devices_count }}</p>
 
@@ -18,16 +18,16 @@
                     {% for device in room.devices %}
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #ecf0f1;">
                         <span>
-                            {% if device.type == 'освещение' %}💡
-                            {% elif device.type == 'климат' %}🌡️
-                            {% elif device.type == 'пылесос' %}🤖
-                            {% elif device.type == 'чайник' %}🍵
+                            {% if device.type == 'освещение' %}
+                            {% elif device.type == 'климат' %}
+                            {% elif device.type == 'пылесос' %}
+                            {% elif device.type == 'чайник' %}
                             {% endif %}
                             {{ device.name }}
                         </span>
                         <div>
                             <span class="{% if device.status %}status-on{% else %}status-off{% endif %}" style="margin-right: 10px;">
-                                {% if device.status %}✅ Включено{% else %}❌ Выключено{% endif %}
+                                {% if device.status %} Включено{% else %} Выключено{% endif %}
                             </span>
                             <button onclick="event.stopPropagation(); toggleDevice('{{ device.id }}')" class="btn btn-sm">
                                 {% if device.status %}Выключить{% else %}Включить{% endif %}

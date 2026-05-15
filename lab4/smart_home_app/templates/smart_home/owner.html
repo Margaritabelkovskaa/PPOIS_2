@@ -10,8 +10,8 @@
         {% if owner.connected %} ПОДКЛЮЧЕНО{% else %} ОТКЛЮЧЕНО{% endif %}
     </div>
     <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-        <button onclick="connect()" class="btn btn-success" {% if owner.connected %}disabled{% endif %}>🔌 Подключить</button>
-        <button onclick="disconnect()" class="btn btn-danger" {% if not owner.connected %}disabled{% endif %}>🔌 Отключить</button>
+        <button onclick="connect()" class="btn btn-success" {% if owner.connected %}disabled{% endif %}> Подключить</button>
+        <button onclick="disconnect()" class="btn btn-danger" {% if not owner.connected %}disabled{% endif %}> Отключить</button>
     </div>
     <div style="margin-top: 20px;">
         <input type="text" id="message" placeholder="Введите сообщение" style="width: 70%;">

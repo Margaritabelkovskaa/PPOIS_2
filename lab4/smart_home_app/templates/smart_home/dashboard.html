@@ -3,25 +3,33 @@
 {% block content %}
 <h1> Панель управления</h1>
 
+<!-- Кнопка для открытия формы добавления устройства -->
 <button onclick="showForm()" class="btn btn-success" style="margin-bottom: 20px;">
      Добавить устройство
 </button>
 
+<!-- Форма добавления устройства (скрыта по умолчанию) -->
 <div id="addForm" style="display:none; background:white; padding:20px; border-radius:10px; margin-bottom:20px;">
     <h3>Новое устройство</h3>
+
+    <!-- Выбор типа устройства -->
     <div style="margin-bottom:10px;">
         <label>Тип:</label>
         <select id="deviceType" style="width:100%; padding:8px;">
-            <option value="light">💡 Освещение</option>
-            <option value="climate">🌡️ Климат</option>
-            <option value="cleaner">🤖 Пылесос</option>
-            <option value="kettle">🍵 Чайник</option>
+            <option value="light"> Освещение</option>
+            <option value="climate"> Климат</option>
+            <option value="cleaner"> Пылесос</option>
+            <option value="kettle"> Чайник</option>
         </select>
     </div>
+
+    <!-- Поле для ввода названия устройства -->
     <div style="margin-bottom:10px;">
         <label>Название:</label>
         <input type="text" id="deviceName" placeholder="Например: Люстра" style="width:100%; padding:8px;">
     </div>
+
+    <!-- Выбор комнаты (динамически из БД) -->
     <div style="margin-bottom:10px;">
         <label>Комната:</label>
         <select id="roomName" style="width:100%; padding:8px;">
@@ -30,28 +38,33 @@
             {% endfor %}
         </select>
     </div>
+
+    <!-- Кнопки формы -->
     <button onclick="addDevice()" class="btn btn-success"> Сохранить</button>
     <button onclick="hideForm()" class="btn btn-danger"> Отмена</button>
 </div>
 
+<!-- Сетка с карточками устройств -->
 <div class="device-grid">
     {% for device in devices %}
     <div class="device-card">
+        <!-- Заголовок карточки с иконкой в зависимости от типа -->
         <h3>
-            {% if device.type == 'освещение' %}💡
-            {% elif device.type == 'климат' %}🌡️
-            {% elif device.type == 'пылесос' %}🤖
-            {% elif device.type == 'чайник' %}🍵
+            {% if device.type == 'освещение' %}
+            {% elif device.type == 'климат' %}
+            {% elif device.type == 'пылесос' %}
+            {% elif device.type == 'чайник' %}
             {% endif %}
             {{ device.name }}
         </h3>
         <p> Комната: {{ device.room }}</p>
 
+        <!-- Статус (включено/выключено) с цветом -->
         <p class="{% if device.status %}status-on{% else %}status-off{% endif %}" style="font-size: 18px;">
             {% if device.status %} Включено{% else %} Выключено{% endif %}
         </p>
 
-        <!-- ========== ОСВЕЩЕНИЕ ========== -->
+        <!-- ========== УПРАВЛЕНИЕ ОСВЕЩЕНИЕМ ========== -->
         {% if device.type == 'освещение' %}
         <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
             <label>💡 ЯРКОСТЬ: <span id="brightness-val-{{ device.id }}" style="font-weight: bold; font-size: 18px;">{{ device.brightness|default:100 }}</span>%</label>
@@ -67,8 +80,9 @@
         </div>
         {% endif %}
 
-        <!-- ========== КЛИМАТ ========== -->
+        <!-- ========== УПРАВЛЕНИЕ КЛИМАТОМ ========== -->
         {% if device.type == 'климат' %}
+        <!-- Регулировка температуры -->
         <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
             <label>🌡️ ТЕМПЕРАТУРА: <span id="temp-val-{{ device.id }}" style="font-weight: bold; font-size: 18px;">{{ device.target_temperature|default:22 }}</span>°C</label>
             <input type="range" id="temperature-{{ device.id }}" min="16" max="30" step="0.5"
@@ -82,6 +96,7 @@
             </div>
         </div>
 
+        <!-- Регулировка влажности -->
         <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
             <label>💧 ВЛАЖНОСТЬ: <span id="humidity-val-{{ device.id }}" style="font-weight: bold; font-size: 18px;">{{ device.target_humidity|default:50 }}</span>%</label>
             <input type="range" id="humidity-{{ device.id }}" min="30" max="80" step="5"
@@ -95,6 +110,7 @@
             </div>
         </div>
 
+        <!-- Выбор режима работы -->
         <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
             <label>🔄 РЕЖИМ РАБОТЫ:</label>
             <select id="mode-{{ device.id }}" onchange="setMode('{{ device.id }}', this.value)" style="width: 100%; margin-top: 8px; padding: 8px;">
@@ -106,6 +122,7 @@
             </select>
         </div>
 
+        <!-- Выбор скорости вентилятора -->
         <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
             <label>🌀 СКОРОСТЬ ВЕНТИЛЯТОРА:</label>
             <select id="fan_speed-{{ device.id }}" onchange="setFanSpeed('{{ device.id }}', this.value)" style="width: 100%; margin-top: 8px; padding: 8px;">
@@ -117,30 +134,35 @@
         </div>
         {% endif %}
 
-        <!-- ========== ЧАЙНИК ========== -->
+        <!-- ========== УПРАВЛЕНИЕ ЧАЙНИКОМ ========== -->
         {% if device.type == 'чайник' %}
         <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <!-- Индикатор уровня воды -->
             <div style="margin-bottom: 10px;">
-                📊 Вода: <strong>{{ device.water_level|default:100 }}%</strong>
+                 Вода: <strong>{{ device.water_level|default:100 }}%</strong>
                 <progress value="{{ device.water_level|default:100 }}" max="100" style="width: 100%; height: 10px;"></progress>
             </div>
+            <!-- Текущая температура -->
             <div style="margin-bottom: 10px;">
                 🌡️ Температура: <strong>{{ device.temperature|default:20 }}°C</strong>
             </div>
+            <!-- Кнопка кипячения -->
             <button onclick="boilKettle('{{ device.id }}')" class="btn btn-warning" style="width: 100%; margin-top: 10px;">
                 🍵 ВСКИПЯТИТЬ ЧАЙНИК
             </button>
         </div>
         {% endif %}
 
-        <!-- ========== ПЫЛЕСОС ========== -->
+        <!-- ========== УПРАВЛЕНИЕ ПЫЛЕСОСОМ ========== -->
         {% if device.type == 'пылесос' %}
         <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+            <!-- Выбор режима уборки -->
             <label>🔄 РЕЖИМ УБОРКИ:</label>
             <select id="mode-{{ device.id }}" onchange="setCleanerMode('{{ device.id }}', this.value)" style="width: 100%; margin-top: 8px; padding: 8px;">
                 <option value="обычный" {% if device.mode == 'обычный' %}selected{% endif %}>🧹 Обычная уборка</option>
                 <option value="влажная" {% if device.mode == 'влажная' %}selected{% endif %}>💧 Влажная уборка</option>
             </select>
+            <!-- Кнопки управления -->
             <div style="display: flex; gap: 10px; margin-top: 10px;">
                 <button onclick="startCleaning('{{ device.id }}')" class="btn btn-success" style="flex: 1;">▶️ ЗАПУСТИТЬ</button>
                 <button onclick="stopCleaning('{{ device.id }}')" class="btn btn-danger" style="flex: 1;">⏹️ ОСТАНОВИТЬ</button>
@@ -148,31 +170,46 @@
         </div>
         {% endif %}
 
-        <!-- КНОПКИ ВКЛ/ВЫКЛ И УДАЛЕНИЯ -->
+        <!-- ========== КНОПКИ УПРАВЛЕНИЯ УСТРОЙСТВОМ ========== -->
         <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <!-- Кнопка включения/выключения (меняет цвет в зависимости от статуса) -->
             <button onclick="toggleDevice('{{ device.id }}')" class="btn" style="flex: 1; background: {% if device.status %}#e74c3c{% else %}#27ae60{% endif %};">
-                {% if device.status %} ВЫКЛЮЧИТЬ{% else %}🟢 ВКЛЮЧИТЬ{% endif %}
+                {% if device.status %} ВЫКЛЮЧИТЬ{% else %} ВКЛЮЧИТЬ{% endif %}
             </button>
-            <button onclick="deleteDevice('{{ device.id }}')" class="btn btn-danger" style="flex: 1;">
-                🗑️ УДАЛИТЬ
+            <!-- Кнопка удаления - ОРАНЖЕВЫЙ ЦВЕТ (#f39c12) -->
+            <button onclick="deleteDevice('{{ device.id }}')" class="btn" style="flex: 1; background: #f39c12; color: white; border: none;">
+                УДАЛИТЬ
             </button>
         </div>
     </div>
     {% empty %}
+    <!-- Сообщение, если нет устройств -->
     <div class="card" style="text-align: center;">
         <p> Нет устройств. Нажмите "Добавить устройство"</p>
     </div>
     {% endfor %}
 </div>
 
+<!-- ========== JAVASCRIPT ФУНКЦИИ ========== -->
 <script>
+// Функция для получения CSRF-токена из куки (нужен для POST/DELETE запросов)
+function getCookie(name) {
+    let value = "; " + document.cookie;
+    let parts = value.split("; " + name + "=");
+    if (parts.length == 2) return parts.pop().split(";").shift();
+}
+
+// ПОКАЗАТЬ форму добавления устройства
 function showForm() {
     document.getElementById('addForm').style.display = 'block';
 }
+
+// СКРЫТЬ форму добавления устройства
 function hideForm() {
     document.getElementById('addForm').style.display = 'none';
 }
 
+// ДОБАВИТЬ устройство (отправляет POST запрос на сервер)
 function addDevice() {
     const data = {
         device_type: document.getElementById('deviceType').value,
@@ -192,13 +229,14 @@ function addDevice() {
     .then(data => {
         if (data.success) {
             alert(data.message);
-            location.reload();
+            location.reload();  // Перезагружаем страницу, чтобы показать новое устройство
         } else {
             alert('Ошибка: ' + data.error);
         }
     });
 }
 
+// ВКЛЮЧИТЬ/ВЫКЛЮЧИТЬ устройство
 function toggleDevice(deviceId) {
     fetch(`/api/device/${deviceId}/toggle/`, {
         method: 'POST',
@@ -211,6 +249,7 @@ function toggleDevice(deviceId) {
     });
 }
 
+// УДАЛИТЬ устройство (с подтверждением)
 function deleteDevice(deviceId) {
     if (confirm('Удалить устройство?')) {
         fetch(`/api/device/${deviceId}/`, {
@@ -225,7 +264,8 @@ function deleteDevice(deviceId) {
     }
 }
 
-// ОСВЕЩЕНИЕ
+// ========== УПРАВЛЕНИЕ ОСВЕЩЕНИЕМ ==========
+// Установка яркости (обновляет значение на слайдере и отправляет на сервер)
 function setBrightness(deviceId, value) {
     document.getElementById(`brightness-val-${deviceId}`).innerHTML = value;
     fetch(`/api/device/${deviceId}/brightness/`, {
@@ -235,7 +275,8 @@ function setBrightness(deviceId, value) {
     });
 }
 
-// КЛИМАТ
+// ========== УПРАВЛЕНИЕ КЛИМАТОМ ==========
+// Установка температуры
 function setTemperature(deviceId, value) {
     document.getElementById(`temp-val-${deviceId}`).innerHTML = value;
     fetch(`/api/device/${deviceId}/temperature/`, {
@@ -245,6 +286,7 @@ function setTemperature(deviceId, value) {
     });
 }
 
+// Установка влажности
 function setHumidity(deviceId, value) {
     document.getElementById(`humidity-val-${deviceId}`).innerHTML = value;
     fetch(`/api/device/${deviceId}/humidity/`, {
@@ -254,6 +296,7 @@ function setHumidity(deviceId, value) {
     });
 }
 
+// Установка режима работы (auto, cool, heat, dry, fan_only)
 function setMode(deviceId, mode) {
     fetch(`/api/device/${deviceId}/mode/`, {
         method: 'POST',
@@ -262,6 +305,7 @@ function setMode(deviceId, mode) {
     });
 }
 
+// Установка скорости вентилятора
 function setFanSpeed(deviceId, speed) {
     fetch(`/api/device/${deviceId}/fan_speed/`, {
         method: 'POST',
@@ -270,7 +314,8 @@ function setFanSpeed(deviceId, speed) {
     });
 }
 
-// ЧАЙНИК
+// ========== УПРАВЛЕНИЕ ЧАЙНИКОМ ==========
+// Запуск кипячения чайника
 function boilKettle(deviceId) {
     fetch(`/api/device/${deviceId}/boil/`, {
         method: 'POST',
@@ -287,7 +332,8 @@ function boilKettle(deviceId) {
     });
 }
 
-// ПЫЛЕСОС
+// ========== УПРАВЛЕНИЕ ПЫЛЕСОСОМ ==========
+// Установка режима уборки (обычный/влажная)
 function setCleanerMode(deviceId, mode) {
     fetch(`/api/device/${deviceId}/cleaner_mode/`, {
         method: 'POST',
@@ -296,6 +342,7 @@ function setCleanerMode(deviceId, mode) {
     });
 }
 
+// Запуск уборки пылесосом
 function startCleaning(deviceId) {
     fetch(`/api/device/${deviceId}/start_cleaning/`, {
         method: 'POST',
@@ -310,6 +357,7 @@ function startCleaning(deviceId) {
     });
 }
 
+// Остановка уборки пылесоса
 function stopCleaning(deviceId) {
     fetch(`/api/device/${deviceId}/stop_cleaning/`, {
         method: 'POST',
